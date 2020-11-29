@@ -117,7 +117,6 @@ PREFIX = "OutputPrefix"
 # configurable constants
 # these are constants that are meant to be configurable - they could be edited here,
 # or specified in a configuration file that is external to this script and checked for at run time
-# CSV and notes
 DEFAULT_OPTIONS = {
     HERO_NAME: "hero",
     TIMEZONE_TEXT: "America/New_York",
@@ -316,7 +315,9 @@ else:
     for handNumber in sorted(hands.keys(), key=lambda hand: hands[hand][DATETIME] ):
 
         # Get important hand and table header info and put hand time in the YYYY-mm-ddThh:mm:ssZ ISO
-        # format that is expected
+        # format that is expected by the OHH spec
+        # being sure to reference back to the timezone as specified in command line 
+        # or configuration files
         handTime = timezone.localize(hands[handNumber][DATETIME])
         handTimeUtc = handTime.astimezone(pytz.utc).strftime("%Y-%m-%dT%TZ")
         # print(handNumber) #DEBUG
@@ -359,6 +360,9 @@ else:
         # but once we know we have seenSeats we can assume we are either in or past that
         # part of chat history and do not need to do text searches for Site, Game
         # Also a placeholder for current Round
+        # processedSeats is a marker for the parsing logic to indicate we hace already
+        # encountered the players in the hands and accounted for them
+        # similar markers are used for cardsDealt and currentRound
         processedSeats = False
         cardsDealt = False
         currentRound = None
@@ -440,6 +444,8 @@ else:
             # the text to match for a post
             # this also indicates that the dealing is happening and we should
             # move to the phase of assembling rounds of actions
+            # currently do not use the OHH action of "Post Extra Blind" or "Post Dead" 
+            #TODO test scenarios with dead blind or additional blind
             #TODO Check if an allin post results in comment on the post line itself
             post = re.search("^(\w+) (posts .*) ([\d.]+)$",line)
             if (post != None):
@@ -578,6 +584,8 @@ else:
                 continue
 
             # the text to match for betting
+            # important to look for All-in indicator and mark the action 
+            # as such inthe hand history
             bet = re.search("(\w+) (bets|calls|raises to|brings in for) ([\d.]+)",line)
             if (bet != None):
                 player = bet.group(1)
@@ -612,7 +620,15 @@ else:
                 continue
 
             # the text to match for a refunded bet
-            # and then make it part of the main pot win
+            # during initial development, it was not clear how to handle refunded bets
+            # since the OHH spec does not mention these
+            # so the initial approach was to add these into the pot so that the rewarded pot
+            # added up to what was bet
+            # however on initial testing, became clear that this is not an issue
+            # PT4 on import accounts for uncalled bets and does not include them 
+            # in pot calculations
+            # so the pot calculation here is commented out
+            #TODO remove this refunded processing entirely if truly not needed
             refunded = re.search("(\w+) refunded ([\d.]+)",line)
             if (refunded != None):
                 player = refunded.group(1)
@@ -629,6 +645,8 @@ else:
 
             # the text to match for cards shows
             # the text to check for a win
+            # the winners array is used in later logic to check
+            # for the existence of showdown round 4 in each OHH object
             winner = re.search("(\w+) (wins|splits).*Pot (\d+)? *\(([\d.]+)\)",line)
             if (winner != None):
                 player = winner.group(1)
@@ -704,7 +722,11 @@ else:
         tables[table][OHH].append(ohh)
 
 
-
+    # finally step through each table and produce an output file
+    # with one OHH JSON object on a line
+    # separated from one another by empty lines as specified by PT4 for import
+    # UNLESS the -i or --indent flag was used in which case the JSON for 
+    # each OHH object will be indented for ease of reading and debugging
     for table in tables.keys():
         print("Table: " + table + " Processed hands:" +str(tables[table][COUNT]))
         print("\tLatest: " + tables[table][LATEST].strftime("%T %m/%d/%Y"))
