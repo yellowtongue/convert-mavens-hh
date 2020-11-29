@@ -9,7 +9,7 @@
 # WHAT THIS DOES
 #
 # goal of this program is to process Poker Mavens hand history text and convert to JSON format
-# that matches the Standardized hand History format specified by Poker Tracker and documented here:
+# that matches the Standardized hand History format specified by PokerTracker and documented here:
 #  https://hh-specs.handhistory.org/
 #
 # To do this we will take the logs and first break it up into hand by hand
