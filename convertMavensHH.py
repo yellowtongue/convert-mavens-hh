@@ -316,7 +316,7 @@ else:
 
         # Get important hand and table header info and put hand time in the YYYY-mm-ddThh:mm:ssZ ISO
         # format that is expected by the OHH spec
-        # being sure to reference back to the timezone as specified in command line 
+        # being sure to reference back to the timezone as specified in command line
         # or configuration files
         handTime = timezone.localize(hands[handNumber][DATETIME])
         handTimeUtc = handTime.astimezone(pytz.utc).strftime("%Y-%m-%dT%TZ")
@@ -444,7 +444,7 @@ else:
             # the text to match for a post
             # this also indicates that the dealing is happening and we should
             # move to the phase of assembling rounds of actions
-            # currently do not use the OHH action of "Post Extra Blind" or "Post Dead" 
+            # currently do not use the OHH action of "Post Extra Blind" or "Post Dead"
             #TODO test scenarios with dead blind or additional blind
             #TODO Check if an allin post results in comment on the post line itself
             post = re.search("^(\w+) (posts .*) ([\d.]+)$",line)
@@ -584,7 +584,7 @@ else:
                 continue
 
             # the text to match for betting
-            # important to look for All-in indicator and mark the action 
+            # important to look for All-in indicator and mark the action
             # as such inthe hand history
             bet = re.search("(\w+) (bets|calls|raises to|brings in for) ([\d.]+)",line)
             if (bet != None):
@@ -625,7 +625,7 @@ else:
             # so the initial approach was to add these into the pot so that the rewarded pot
             # added up to what was bet
             # however on initial testing, became clear that this is not an issue
-            # PT4 on import accounts for uncalled bets and does not include them 
+            # PT4 on import accounts for uncalled bets and does not include them
             # in pot calculations
             # so the pot calculation here is commented out
             #TODO remove this refunded processing entirely if truly not needed
@@ -705,6 +705,8 @@ else:
             if (not hasShowdownRound):
                 if (len(winners) > 1):
                     print ("Error: Hand Number " + ohh[GAME_NUMBER] + " appears to be missing a showdown round while having more than one winner.")
+                elif (len(winners) == 0):
+                    print ("Error: Hand Number " + ohh[GAME_NUMBER] + " appears there are no winners.")
                 else:
                     round = {}
                     actionNumber = 0
@@ -725,7 +727,7 @@ else:
     # finally step through each table and produce an output file
     # with one OHH JSON object on a line
     # separated from one another by empty lines as specified by PT4 for import
-    # UNLESS the -i or --indent flag was used in which case the JSON for 
+    # UNLESS the -i or --indent flag was used in which case the JSON for
     # each OHH object will be indented for ease of reading and debugging
     for table in tables.keys():
         print("Table: " + table + " Processed hands:" +str(tables[table][COUNT]))
