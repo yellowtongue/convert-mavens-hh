@@ -363,6 +363,8 @@ else:
         # processedSeats is a marker for the parsing logic to indicate we hace already
         # encountered the players in the hands and accounted for them
         # similar markers are used for cardsDealt and currentRound
+        # the roundCommit dictionary keeps track of what players have already committed to the pot
+        # so that re-raises can account for that in the raise action
         processedSeats = False
         cardsDealt = False
         currentRound = None
@@ -372,6 +374,7 @@ else:
         actionNumber = 0
         round = { CARDS:[], ACTIONS:[]}
         pots = {}
+        roundCommit = {}
 
 
         for line in hands[handNumber][TEXT].splitlines():
@@ -458,6 +461,9 @@ else:
                     round[ID] = (roundNumber)
                     currentRound = firstRounds[ohh[GAME_TYPE]]
                     round[STREET] = currentRound
+                    roundCommit = {}
+                    for p in playerIds:
+                        roundCommit[p] = 0
                 action = {}
                 if (type == POSTS_BOTH_BLINDS):
                     action[ACTION_NUMBER] = actionNumber
@@ -496,6 +502,9 @@ else:
                         currentRound = firstRounds[ohh[GAME_TYPE]]
                         round[STREET] = currentRound
                         action = {}
+                        roundCommit = {}
+                        for p in playerIds:
+                            roundCommit[p] = 0
                     continue
                 elif (label in makeNewRound):
                     # make new round
@@ -512,6 +521,10 @@ else:
                     round[STREET] = currentRound
                     round[CARDS] = []
                     round[ACTIONS] = []
+                    roundCommit = {}
+                    for p in playerIds:
+                        roundCommit[p] = 0
+
                     if (notes is not None):
                         for card in notes.group(1).split():
                             round[CARDS].append(card)
@@ -525,6 +538,9 @@ else:
                     round[STREET] = makeNewRound[SHOW_DOWN]
                     round[CARDS] = []
                     round[ACTIONS] = []
+                    roundCommit = {}
+                    for p in playerIds:
+                        roundCommit[p] = 0
                 else:
                     continue
 
@@ -594,6 +610,9 @@ else:
                 action={}
                 action[ACTION_NUMBER] = actionNumber
                 action[PLAYER_ID] = playerIds[player]
+                if (does == "raises to"):
+                    amount = amount - roundCommit[player]
+                roundCommit[player] += amount
                 action[AMOUNT] = amount
                 action[ACTION] = betVerbToAction[does]
                 allIn = re.search("\(All-in\)",line)
