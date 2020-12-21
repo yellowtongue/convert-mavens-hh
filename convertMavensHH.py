@@ -25,6 +25,7 @@
 # 2020-05-12 first version
 # 2020-11-28 fixes for first import (always include showdown round 4)
 # 2020-11-28 make external configuration file
+# 2020-12-21 v 0.1.1 - important bug fix for re-raises
 
 
 import argparse
@@ -36,7 +37,7 @@ import re
 import sys
 
 # constants - DO NOT CHANGE
-VERSION = "0.1"
+VERSION = "0.1.1"
 OPTIONS_FILE = "convertMavensHH.ini"
 INDEX = "index"
 TEXT = "text"
